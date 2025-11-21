@@ -1,1 +1,15 @@
 @import "tailwindcss";
+@layer utilities {
+  @keyframes wiggle {
+    0%, 100% {
+      transform: translateX(-20px);
+    }
+    50% {
+      transform: translateX(20px);
+    }
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.25s ease-in-out 1s;
+  }
+}

@@ -1,7 +1,7 @@
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import supabase from "../supabase";
-
+import userContext from "../context/user"
 const input_fields_classname = `
   w-full
   p-3 
@@ -20,43 +20,65 @@ const input_fields_classname = `
 
 const LogInSignUp = ({ isLogIn = true }) => {
   const [user, setUser] = useState({ fullname: "", password: "", email: "" });
-
-  const [errors, setErrors] = useState({
-    fullname: false,
-    email: false,
-    password: false
-  });
+  const { setUser: setUserInfo, setLoggedIn } = useContext(userContext);
+  const [error, setError] = useState({username:false, email:false, password:false})
 
   const fieldChange = (e) => {
     setUser((user) => ({ ...user, [e.target.id]: e.target.value }));
-    setErrors((err) => ({ ...err, [e.target.id]: false })); // remove error on change
+    setError((error) => ({...error, [e.target.id]:false}))
   };
-
+  const errorOccured = (e)=>{
+    setError((error) => ({...error, [e.target.id]:true}))
+  }
   const submit_form = async (e) => {
     e.preventDefault();
-    // Fake server validation example:
-    if(isLogIn){
-        const {data, error} = await supabase.auth.signInWithPassword({
+  
+    if (isLogIn) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email, password
+      })
+      if (error || !data.user) {
 
-        })}
-    else{
-        const {data, error } = await supabase.auth.signUp({
-            email, password,
-            options:{
-                data:{
-                    full_name:fullname
-                }
-            }
-        })
+      } else {
+
+        setUserInfo(data.user)
+        setLoggedIn(true)
+      }
+    }
+    else {
+      const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: {
+          data: {
+            full_name: fullname
+          }
+        }
+      })
+      if (error || !data.user) {
+
+      } else {
+        setUserInfo(data.user)
+        setLoggedIn(true);
+      }
     }
 
-    console.log("Submitting:", user);
   };
-  const OAuth_google = async()=>{
-    return 
-  }
+  const OAuth_google = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+
+    });
+
+    if (error || !data.user) console.log(error);
+    else{
+      setUserInfo(data.user)
+      setLoggedIn(true)
+    }
+  };
+
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-100 to-emerald-200 p-4">
+    <div className="flex justify-center items-center min-h-screen bg-linear-to-br from-green-100 to-emerald-200 p-4">
 
       <form
         className="w-full max-w-md p-6 rounded-2xl bg-white/70 backdrop-blur-xl shadow-xl border border-white/40"
@@ -77,16 +99,13 @@ const LogInSignUp = ({ isLogIn = true }) => {
               type="text"
               id="fullname"
               onChange={fieldChange}
-              className={`${input_fields_classname} ${
-                errors.fullname
-                  ? "border-red-400 shadow-red-300 animate-wiggle"
-                  : ""
-              }`}
+              className={`${input_fields_classname}`}
+              required
+              minLength="6"
+              maxLength="20"
+              onInvalid={errorOccured}
             />
 
-            {errors.fullname && (
-              <p className="text-xs text-red-500">fullname is too short.</p>
-            )}
           </div>
         )}
 
@@ -100,16 +119,12 @@ const LogInSignUp = ({ isLogIn = true }) => {
             type="text"
             id="email"
             onChange={fieldChange}
-            className={`${input_fields_classname} ${
-              errors.email
-                ? "border-red-400 shadow-red-300 animate-wiggle"
-                : ""
-            }`}
+            onInvalid={errorOccured}
+            minLength="6"
+            className={`${input_fields_classname} ${error.email?"animate-wiggle":""}`}
           />
 
-          {errors.email && (
-            <p className="text-xs text-red-500">Please enter a valid email.</p>
-          )}
+
         </div>
 
         {/* PASSWORD */}
@@ -122,33 +137,28 @@ const LogInSignUp = ({ isLogIn = true }) => {
             type="password"
             id="password"
             onChange={fieldChange}
-            className={`${input_fields_classname} ${
-              errors.password
-                ? "border-red-400 shadow-red-300 animate-wiggle"
-                : ""
-            }`}
+            onInvalid={errorOccured}
+            className={`${input_fields_classname} `}
+            required
+            minLength="6"
           />
 
-          {errors.password && (
-            <p className="text-xs text-red-500">
-              Password must be at least 6 characters.
-            </p>
-          )}
+
         </div>
 
         {/* SUBMIT BUTTON */}
-        <button
+        <input
           type="submit"
           className="w-full py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow-md transition-all"
-        >
-          Submit
-        </button>
+        placeholder="Submit"/>
+         
 
         <div className="h-2"></div>
 
         {/* GOOGLE SIGN IN */}
         <button
           className="w-full py-3 rounded-lg bg-white border border-gray-300 shadow-sm hover:bg-gray-50 font-medium transition-all"
+          onClick={OAuth_google}
         >
           {isLogIn ? "Login with Google" : "Sign Up with Google"}
         </button>
