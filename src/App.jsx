@@ -10,13 +10,13 @@ import userContext from './context/user'
 import Home from "./pages/home"
 
 function App() {
-  const { user, setUser } = useState(null);
-  const {loading, setLoading} = useState(true);
-  const {isLoggedIn, setLoggedIn} = useState(false);
+  const [ user, setUser ] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setLoggedIn] = useState(false);
   //Fetch user info when website loads
   useEffect(()=>{
    const getUser = async()=>{
-    const {data, error} = await supabase.getUser()
+    const {data, error} = await supabase.auth.getUser()
     if(error || !data.user)
       setLoggedIn(false);
     else{
@@ -25,6 +25,7 @@ function App() {
     }
     setLoading(false)
    }
+   getUser()
   }, [])
 
   return (
