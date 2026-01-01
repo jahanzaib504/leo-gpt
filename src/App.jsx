@@ -8,11 +8,13 @@ import { ThemeContextProiver } from './context/theme'
 import supabase from './supabase'
 import userContext from './context/user'
 import Home from "./pages/home"
-
+import AuthRoute from "./AuthRoute"
 function App() {
   const [ user, setUser ] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setLoggedIn] = useState(false);
+
+  const [chatData, setChatData] = useState({chatId:"", prompt:"", response:"", generating:false}) //Store data 
   //Fetch user info when website loads
   useEffect(()=>{
    const getUser = async()=>{
@@ -34,8 +36,12 @@ function App() {
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Home/>}/>
-      <Route path="/dashboard/:chatId" element={<Dashboard/>}></Route>
-      <Route path="/dashboard" element={<Dashboard/>}></Route>
+
+     
+      <Route path="/dashboard/:chatId" element={<AuthRoute><Dashboard/></AuthRoute>}></Route>
+      <Route path="/dashboard" element={<AuthRoute><Dashboard/></AuthRoute>}></Route>
+   
+
       <Route path="/login" element={<LogInSignUp isLogIn={true}/>}></Route>
       <Route path="/signup" element={<LogInSignUp isLogIn={false}/>}></Route>
     </Routes>

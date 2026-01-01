@@ -13,3 +13,22 @@
     animation: wiggle 0.25s ease-in-out 1s;
   }
 }
+/* Hide the scrollbar background but keep the thumb */
+.scrollbar-transparent::-webkit-scrollbar {
+  width: 8px;              /* width of the scrollbar */
+}
+
+.scrollbar-transparent::-webkit-scrollbar-track {
+  background: transparent;  /* make the track invisible */
+}
+
+.scrollbar-transparent::-webkit-scrollbar-thumb {
+  background-color: #888;   /* your thumb color */
+  border-radius: 4px;       /* rounded thumb */
+}
+
+/* Firefox */
+.scrollbar-transparent {
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+}

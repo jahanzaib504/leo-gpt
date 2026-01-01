@@ -2,6 +2,7 @@
 import { useState, useContext } from "react";
 import supabase from "../supabase";
 import userContext from "../context/user"
+import { Link } from "react-router-dom";
 const input_fields_classname = `
   w-full
   p-3 
@@ -162,6 +163,9 @@ const LogInSignUp = ({ isLogIn = true }) => {
         >
           {isLogIn ? "Login with Google" : "Sign Up with Google"}
         </button>
+        
+        {isLogIn && <p className="text-sm text-red-800">Create an account <Link to="/signup">Sign Up</Link></p>}
+        {!isLogIn && <p className="text-sm text-red-800">Already have an account <Link to="/login">Log In</Link></p>}  
       </form>
     </div>
   );
