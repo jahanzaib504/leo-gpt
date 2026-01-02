@@ -36,10 +36,10 @@ const LogInSignUp = ({ isLogIn = true }) => {
 
     if (isLogIn) {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email, password
+        email: user.email, password: user.password
       })
       if (error || !data.user) {
-
+        console.log("Error occured while log in")
       } else {
 
         setUserInfo(data.user)
@@ -48,15 +48,15 @@ const LogInSignUp = ({ isLogIn = true }) => {
     }
     else {
       const { data, error } = await supabase.auth.signUp({
-        email, password,
+        email: user.email, password: user.password,
         options: {
           data: {
-            full_name: fullname
+            full_name: user.fullname
           }
         }
       })
       if (error || !data.user) {
-
+        console.log("Error occured while sign up")
       } else {
         setUserInfo(data.user)
         setLoggedIn(true);
@@ -65,16 +65,11 @@ const LogInSignUp = ({ isLogIn = true }) => {
 
   };
   const OAuth_google = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-
     });
 
-    if (error || !data.user) console.log(error);
-    else {
-      setUserInfo(data.user)
-      setLoggedIn(true)
-    }
+    if (error) console.log(error);
   };
 
 

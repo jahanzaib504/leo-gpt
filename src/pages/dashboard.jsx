@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm";
-
+import { ClipLoader } from "react-spinners";
+import { FaEllipsisV } from "react-icons/fa"
+import { useFloating, offset, flip, shift } from "@floating-ui/react"
 
 function GPTResponse(text) {
   return (
@@ -25,6 +27,8 @@ const Dashboard = () => {
   const [chatHistory, setChatHistory] = useState([]); // {id, title}
   const [currentChat, setCurrentChat] = useState([]); // {chat_id, prompt, response, id}
   const [prompt, setPrompt] = useState("");
+  const [activeMenu, setActiveMenu] = useState(false)
+
 
   const fieldChange = (e) => setPrompt(e.target.value);
 
@@ -82,7 +86,7 @@ const Dashboard = () => {
           navigate("/dashboard");
         }
         else setCurrentChat(data);
-      }else{
+      } else {
         setCurrentChat([])
       }
       setLoadingChats(false);
@@ -98,6 +102,13 @@ const Dashboard = () => {
     };
     fetchChatHistory();
   }, [])
+  useEffect(() => {
+    const handler = () => setActiveMenu(false);
+    window.addEventListener("click", handler);
+    return () => window.removeEventListener("click", handler);
+  }, []);
+
+
   return (
     <div className="flex flex-row h-screen bg-white text-gray-900">
 
@@ -132,24 +143,16 @@ const Dashboard = () => {
                   transition-all
                 ">New Chat</Link>
 
-            {chatHistory.map((ch) => (
-              <li key={ch.id}>
-                <Link
-                  to={`/dashboard/${ch.id}`}
-                  className={`
-                  block px-3 py-2 rounded-xl text-sm
-                  ${(paramChatId === ch.id)?"bg-green-300":""}
-                  border border-transparent
-                  hover:border-green-400
-                  hover:bg-green-100
-                  text-gray-800 truncate
-                  transition-all
-                `}
-                >
-                  {ch.title}
-                </Link>
-              </li>
-            ))}
+            {chatHistory.map((ch) =>( 
+              <ChatListItem key={ch.id}
+                ch={ch}
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu} 
+                paramChatId={paramChatId}
+                setChatHistory={setChatHistory}
+                setCurrentChat={setCurrentChat}
+                />)
+            )}
           </ul>
         )}
 
@@ -177,20 +180,33 @@ const Dashboard = () => {
               Start a new conversation below
             </p>
 
-            <input
-              type="text"
-              placeholder="What's on your mind?"
-              className="
-              mt-5 w-96 px-4 py-3 rounded-xl
-              bg-green-50 border border-green-300
-              focus:outline-none focus:ring-2 focus:ring-green-300
-              placeholder:text-gray-500
-            "
-              value={prompt}
-              onChange={fieldChange}
-              onKeyDown={submit}
-              disabled={generating}
-            />
+            <div className="relative mt-4 w-96">
+              <input
+                type="text"
+                placeholder="Type your next message..."
+                className="
+      w-full px-4 py-3 pr-12 rounded-xl
+      bg-white border border-green-300
+      focus:outline-none focus:ring-2 focus:ring-green-400
+      placeholder:text-gray-500
+    "
+                value={prompt}
+                onChange={fieldChange}
+                onKeyDown={submit}
+                disabled={generating}
+              />
+
+              {/* Spinner inside the input */}
+              {generating && (
+                <div className="absolute inset-y-0 right-3 flex items-center">
+                  <ClipLoader
+                    color="#22c55e"  // Tailwind green-500
+                    loading={generating}
+                    size={20}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
         ) : (
@@ -219,25 +235,106 @@ const Dashboard = () => {
             ))}
 
             {/* INPUT */}
-            <input
-              type="text"
-              placeholder="Type your next message..."
-              className="
-              mt-4 w-96 px-4 py-3 rounded-xl
-              bg-white border border-green-300
-              focus:outline-none focus:ring-2 focus:ring-green-400
-              placeholder:text-gray-500
-            "
-              value={prompt}
-              onChange={fieldChange}
-              onKeyDown={submit}
-              disabled={generating}
-            />
+            <div className="relative mt-4 w-96">
+              <input
+                type="text"
+                placeholder="Type your next message..."
+                className="
+      w-full px-4 py-3 pr-12 rounded-xl
+      bg-white border border-green-300
+      focus:outline-none focus:ring-2 focus:ring-green-400
+      placeholder:text-gray-500
+    "
+                value={prompt}
+                onChange={fieldChange}
+                onKeyDown={submit}
+                disabled={generating}
+              />
+
+              {/* Spinner inside the input */}
+              {generating && (
+                <div className="absolute inset-y-0 right-3 flex items-center">
+                  <ClipLoader
+                    color="#22c55e"  // Tailwind green-500
+                    loading={generating}
+                    size={20}
+                  />
+                </div>
+              )}
+            </div>
+
           </div>
         )}
       </div>
     </div>
   );
 };
+function ChatListItem({ ch, activeMenu, setActiveMenu, paramChatId, setChatHistory, setCurrentChat }) {
+  const { refs, floatingStyles } = useFloating({
+    placement: "bottom-start",
+    middleware: [offset(6), flip(), shift()],
+  });
+
+  return (
+    <li className="relative group">
+      <Link
+        to={`/dashboard/${ch.id}`}
+        className={`
+                  block px-3 py-2 rounded-xl text-sm
+                  ${(paramChatId === ch.id) ? "bg-green-100" : ""}
+                  border border-transparent
+                  hover:border-green-400
+                  hover:bg-green-100
+                  text-gray-800 truncate
+                  transition-all
+                `}
+      >
+        {ch.title}
+      </Link>
+
+      <div
+        ref={refs.setReference}
+        className="absolute right-1.5 top-1/2 -translate-y-1/2
+                   text-gray-600 hidden group-hover:block cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveMenu(ch.id);
+        }}
+      >
+        <FaEllipsisV />
+      </div>
+
+      {activeMenu === ch.id && (
+        <div
+          ref={refs.setFloating}
+          style={floatingStyles}
+          className="bg-white border shadow rounded-md z-50 p-2 flex flex-col gap-2"
+        >
+          <button className="block w-full px-4 py-2 bg-red-700 rounded-xl hover:bg-red-600" onClick={()=>deleteChat({id:ch.id, setChatHistory, setCurrentChat, paramChatId})}>
+            Delete
+          </button>
+          <button className="block w-full px-4 py-2 bg-green-100 rounded-xl hover:bg-gray-100">
+            Copy link
+          </button>
+        </div>
+      )}
+    </li>
+  );
+}
+const deleteChat = async({id, setCurrentChat, setChatHistory, paramChatId})=>{
+  console.log("Deleting")
+  const {error} = await supabase.from("chat_history").delete().eq('id', id)
+  if(!error){
+    setChatHistory(history=>{
+      return history.filter((h)=>h.id!=id)
+    })
+    if(paramChatId === id)
+      setCurrentChat([]);
+  }
+  else{
+    console.log("An error occured while deleting chat")
+  }
+}
+
 
 export default Dashboard;
