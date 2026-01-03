@@ -3,10 +3,10 @@ import userContext from "./context/user"
 import { Navigate } from "react-router-dom"
 
 const AuthRoute = ({children})=>{
-    const {isLoggedIn, loading} = useContext(userContext)
+    const {user, loading} = useContext(userContext)
     if(loading)
         return <></>
-    else if(!isLoggedIn)
+    else if(!user)
         return <Navigate to="/login" replace/>
 
     return children

@@ -35,7 +35,7 @@ const Home = () => {
             >
               Try Leo
             </Link>
-
+ 
             <Link
               to="/signup"
               className="px-6 py-3 rounded-xl border border-green-600 text-green-700 text-lg font-medium hover:bg-green-50 transition"

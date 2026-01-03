@@ -2,28 +2,46 @@
 import { useState, useContext } from "react";
 import supabase from "../supabase";
 import userContext from "../context/user"
-import { Link } from "react-router-dom";
-const input_fields_classname = `
-  w-full
-  p-3 
-  rounded-lg
-  text-lg 
-  bg-white/90 
-  border border-gray-300
-  shadow-sm
-  focus:outline-none 
-  focus:ring-1 
-  focus:ring-green-300 
-  focus:border-green-400
-  focus:shadow-[0_0_10px_rgba(34,197,94,0.3)]
-  transition-all
-`;
+import { Link, Navigate } from "react-router-dom";
+import { toast } from 'react-toastify'
+import {useNavigate} from "react-router-dom"
+const Wiggle = ({ children, error, id }) => {
+  const isError = error[id];
+  return (<div className={(isError) ? "animate-wiggle" : ""}>
+    {children}
+  </div>)
+}
+const InputField = ({ label, fieldChange, minLength, type = "text", id, error, errorOccured }) => {
+  return (<div className="mb-4">
+    <label className="text-sm font-medium text-gray-700">{label}</label>
+    <Wiggle id={id} error={error}><input
+      id={id}
+      type={type}
+      onChange={fieldChange}
+      className="
+            w-full mt-1 px-3 py-2 rounded-xl
+            border border-green-200
+            bg-green-50/40
+            focus:bg-white
+            focus:border-green-400
+            focus:ring-2 focus:ring-green-300
+            outline-none
+            transition-all
+          "
+      minLength={minLength}
+      required
+      autoComplete="true"
+      onInvalid={errorOccured}
+    />
+    </Wiggle>
+  </div>)
+}
 
 const LogInSignUp = ({ isLogIn = true }) => {
   const [user, setUser] = useState({ fullname: "", password: "", email: "" });
-  const { setUser: setUserInfo, setLoggedIn } = useContext(userContext);
+  const { setUser: setUserInfo, } = useContext(userContext);
   const [error, setError] = useState({ username: false, email: false, password: false })
-
+  const navigate = useNavigate()
   const fieldChange = (e) => {
     setUser((user) => ({ ...user, [e.target.id]: e.target.value }));
     setError((error) => ({ ...error, [e.target.id]: false }))
@@ -39,11 +57,13 @@ const LogInSignUp = ({ isLogIn = true }) => {
         email: user.email, password: user.password
       })
       if (error || !data.user) {
-        console.log("Error occured while log in")
+        console.log("Error occured while log in", error)
+        if (error.status === 400 || error.status === 401) {
+          toast.error("Incorrect email or password")
+          setError(prev => ({ ...prev, email: true, password: true }))
+        }else{toast.error("An error occured while log in")}
       } else {
-
         setUserInfo(data.user)
-        setLoggedIn(true)
       }
     }
     else {
@@ -51,26 +71,19 @@ const LogInSignUp = ({ isLogIn = true }) => {
         email: user.email, password: user.password,
         options: {
           data: {
-            full_name: user.fullname
+            full_name: user?.fullname
           }
         }
       })
       if (error || !data.user) {
-        console.log("Error occured while sign up")
+        console.log(error)
+        toast.error("An error occured while signUp")
       } else {
-        setUserInfo(data.user)
-        setLoggedIn(true);
+        navigate("/verify")
       }
     }
-
   };
-  const OAuth_google = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    });
 
-    if (error) console.log(error);
-  };
 
 
   return (
@@ -95,71 +108,11 @@ const LogInSignUp = ({ isLogIn = true }) => {
         </h1>
 
         {/* Fullname (signup only) */}
-        {!isLogIn && (
-          <div className="mb-4">
-            <label className="text-sm font-medium text-gray-700">Full Name</label>
-            <input
-              id="fullname"
-              type="text"
-              onChange={fieldChange}
-              className="
-            w-full mt-1 px-3 py-2 rounded-xl
-            border border-green-200
-            bg-green-50/40
-            focus:bg-white
-            focus:border-green-400
-            focus:ring-2 focus:ring-green-300
-            outline-none
-            transition-all
-          "
-              minLength={6}
-              required
-            />
-          </div>
-        )}
-
+        {!isLogIn && <InputField label="Full Name" minLength={4} id="fullname" fieldChange={fieldChange} error={error} errorOccured={errorOccured} />}
         {/* Email */}
-        <div className="mb-4">
-          <label className="text-sm font-medium text-gray-700">Email</label>
-          <input
-            id="email"
-            type="email"
-            onChange={fieldChange}
-            className="
-          w-full mt-1 px-3 py-2 rounded-xl
-          border border-green-200
-          bg-green-50/40
-          focus:bg-white
-          focus:border-green-400
-          focus:ring-2 focus:ring-green-300
-          outline-none
-          transition-all
-        "
-          />
-        </div>
-
+        <InputField label="Email" minLength={0} id="email" fieldChange={fieldChange} type="email" error={error} errorOccured={errorOccured} />
         {/* Password */}
-        <div className="mb-6">
-          <label className="text-sm font-medium text-gray-700">Password</label>
-          <input
-            id="password"
-            type="password"
-            onChange={fieldChange}
-            className="
-          w-full mt-1 px-3 py-2 rounded-xl
-          border border-green-200
-          bg-green-50/40
-          focus:bg-white
-          focus:border-green-400
-          focus:ring-2 focus:ring-green-300
-          outline-none
-          transition-all
-        "
-            minLength={6}
-            required
-          />
-        </div>
-
+        <InputField label="Password" minLength={6} id="password" fieldChange={fieldChange} type="password" error={error} errorOccured={errorOccured} />
         {/* Submit */}
         <button
           type="submit"
@@ -178,18 +131,7 @@ const LogInSignUp = ({ isLogIn = true }) => {
         <div className="h-3" />
 
         {/* Google */}
-        <button
-          onClick={OAuth_google}
-          className="
-        w-full py-3 rounded-xl
-        bg-white border border-green-300
-        text-green-700 font-medium
-        hover:bg-green-50
-        transition-all
-      "
-        >
-          {isLogIn ? "Continue with Google" : "Sign Up with Google"}
-        </button>
+        <GoogleSignInUp isLogIn={isLogIn} />
 
         {/* Switch mode */}
         <p className="text-sm text-gray-700 text-center mt-4">
@@ -204,5 +146,25 @@ const LogInSignUp = ({ isLogIn = true }) => {
 
   );
 };
+const GoogleSignInUp = ({ isLogIn }) => {
+  const OAuth_google = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
 
+    if (error) console.log(error);
+  }
+  return (<button
+    onClick={OAuth_google}
+    className="
+        w-full py-3 rounded-xl
+        bg-white border border-green-300
+        text-green-700 font-medium
+        hover:bg-green-50
+        transition-all
+      "
+  >
+    {isLogIn ? "Continue with Google" : "Sign Up with Google"}
+  </button>);
+};
 export default LogInSignUp;

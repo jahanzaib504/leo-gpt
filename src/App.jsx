@@ -9,10 +9,13 @@ import supabase from './supabase'
 import userContext from './context/user'
 import Home from "./pages/home"
 import AuthRoute from "./AuthRoute"
+import { ToastContainer } from 'react-toastify'
+import {Verify} from "./pages/verify"
+
 function App() {
   const [ user, setUser ] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setLoggedIn] = useState(false);
+
 
   const [chatData, setChatData] = useState({chatId:"", prompt:"", response:"", generating:false}) //Store data 
   //Fetch user info when website loads
@@ -20,10 +23,10 @@ function App() {
    const getUser = async()=>{
     const {data, error} = await supabase.auth.getUser()
     if(error || !data.user)
-      setLoggedIn(false);
+      setUser(null)
     else{
       setUser(data.user)
-      setLoggedIn(true)
+    
     }
     setLoading(false)
    }
@@ -32,7 +35,7 @@ function App() {
 
   return (
 <ThemeContextProiver>  
-  <userContext.Provider value={{user, setUser, loading, setLoading, isLoggedIn, setLoggedIn}}>
+  <userContext.Provider value={{user, setUser, loading, setLoading}}>
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Home/>}/>
@@ -44,8 +47,10 @@ function App() {
 
       <Route path="/login" element={<LogInSignUp isLogIn={true}/>}></Route>
       <Route path="/signup" element={<LogInSignUp isLogIn={false}/>}></Route>
+      <Route path="/verify" element={<Verify/>}/>
     </Routes>
   </BrowserRouter>
+  <ToastContainer/>
   </userContext.Provider>
 </ThemeContextProiver>
   )
