@@ -4,7 +4,7 @@ import supabase from "../supabase";
 import userContext from "../context/user"
 import { Link, Navigate } from "react-router-dom";
 import { toast } from 'react-toastify'
-import {useNavigate} from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 const Wiggle = ({ children, error, id }) => {
   const isError = error[id];
   return (<div className={(isError) ? "animate-wiggle" : ""}>
@@ -61,10 +61,10 @@ const LogInSignUp = ({ isLogIn = true }) => {
         if (error.status === 400 || error.status === 401) {
           toast.error("Incorrect email or password")
           setError(prev => ({ ...prev, email: true, password: true }))
-        }else{toast.error("An error occured while log in")}
-      } else {
-        setUserInfo(data.user)
+        } else { toast.error("An error occured while log in") }
+        return
       }
+      navigate("/dashboard", { replace: true });
     }
     else {
       const { data, error } = await supabase.auth.signUp({

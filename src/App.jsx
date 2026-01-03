@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import LogInSignUp from "./components/log-in-sign-up"
 import Dashboard from './pages/dashboard'
 import {BrowserRouter, Route, Routes} from "react-router-dom"
@@ -23,10 +21,9 @@ function App() {
    const getUser = async()=>{
     const {data, error} = await supabase.auth.getUser()
     if(error || !data.user)
-      setUser(null)
+      setUser(null) 
     else{
       setUser(data.user)
-    
     }
     setLoading(false)
    }
