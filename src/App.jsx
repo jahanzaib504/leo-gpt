@@ -1,45 +1,25 @@
-import { useEffect, useState } from 'react'
+
 import LogInSignUp from "./components/log-in-sign-up"
 import Dashboard from './pages/dashboard'
 import {BrowserRouter, Route, Routes} from "react-router-dom"
 import { ThemeContextProiver } from './context/theme'
-import supabase from './supabase'
-import userContext from './context/user'
 import Home from "./pages/home"
-import AuthRoute from "./AuthRoute"
+import {ProtectedRoute} from './routes/protectedRoute'
 import { ToastContainer } from 'react-toastify'
 import {Verify} from "./pages/verify"
-
+import { AuthContextProvider } from './context/Auth'
 function App() {
-  const [ user, setUser ] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-
-  const [chatData, setChatData] = useState({chatId:"", prompt:"", response:"", generating:false}) //Store data 
-  //Fetch user info when website loads
-  useEffect(()=>{
-   const getUser = async()=>{
-    const {data, error} = await supabase.auth.getUser()
-    if(error || !data.user)
-      setUser(null) 
-    else{
-      setUser(data.user)
-    }
-    setLoading(false)
-   }
-   getUser()
-  }, [])
 
   return (
-<ThemeContextProiver>  
-  <userContext.Provider value={{user, setUser, loading, setLoading}}>
+<ThemeContextProiver> 
+  <AuthContextProvider>
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Home/>}/>
 
      
-      <Route path="/dashboard/:chatId" element={<AuthRoute><Dashboard/></AuthRoute>}></Route>
-      <Route path="/dashboard" element={<AuthRoute><Dashboard/></AuthRoute>}></Route>
+      <Route path="/dashboard/:chatId" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}></Route>
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}></Route>
    
 
       <Route path="/login" element={<LogInSignUp isLogIn={true}/>}></Route>
@@ -47,8 +27,8 @@ function App() {
       <Route path="/verify" element={<Verify/>}/>
     </Routes>
   </BrowserRouter>
+  </AuthContextProvider>
   <ToastContainer/>
-  </userContext.Provider>
 </ThemeContextProiver>
   )
 }

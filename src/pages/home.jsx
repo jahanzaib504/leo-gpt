@@ -6,7 +6,7 @@ const Home = () => {
       <header className="flex justify-start items-center py-4 px-4 md:px- shadow-sm">
         <div className="flex items-center gap-2">
           <img
-            src="/src/assets/logo-green.png"
+            src="/logo-green.png"
             alt="logo"
             className="h-12 w-auto"
           />

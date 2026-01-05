@@ -1,8 +1,7 @@
 
-import { useState, useContext } from "react";
+import { useState } from "react";
 import supabase from "../supabase";
-import userContext from "../context/user"
-import { Link, Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from 'react-toastify'
 import { useNavigate } from "react-router-dom"
 const Wiggle = ({ children, error, id }) => {
@@ -39,7 +38,6 @@ const InputField = ({ label, fieldChange, minLength, type = "text", id, error, e
 
 const LogInSignUp = ({ isLogIn = true }) => {
   const [user, setUser] = useState({ fullname: "", password: "", email: "" });
-  const { setUser: setUserInfo, } = useContext(userContext);
   const [error, setError] = useState({ username: false, email: false, password: false })
   const navigate = useNavigate()
   const fieldChange = (e) => {
@@ -150,6 +148,9 @@ const GoogleSignInUp = ({ isLogIn }) => {
   const OAuth_google = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
+          options: {
+      redirectTo: "https://leo-gpt.netlify.app/dashboard"
+    }
     });
 
     if (error) console.log(error);
